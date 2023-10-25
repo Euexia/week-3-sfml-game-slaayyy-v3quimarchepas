@@ -74,7 +74,6 @@ public:
             // Dessinez le fond du menu en premier
             window.draw(menuBackgroundSprite);
 
-
             sf::Event event;
             while (window.pollEvent(event)) {
                 if (event.type == sf::Event::Closed) {
@@ -82,10 +81,10 @@ public:
                 }
                 if (event.type == sf::Event::KeyPressed) {
                     if (event.key.code == sf::Keyboard::Up) {
-                        selectedIndex = (selectedIndex - 1 + 3) % 3;
+                        selectedIndex = (selectedIndex - 1 + options.size()) % options.size();
                     }
                     else if (event.key.code == sf::Keyboard::Down) {
-                        selectedIndex = (selectedIndex + 1) % 3;
+                        selectedIndex = (selectedIndex + 1) % options.size();
                     }
                     else if (event.key.code == sf::Keyboard::Enter) {
                         return selectedIndex;

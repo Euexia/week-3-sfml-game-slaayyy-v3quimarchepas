@@ -1,13 +1,15 @@
 #include <SFML/Graphics.hpp>
+#include <iostream>
+#include <windows.h>
+#include <fstream>
 
 #include "GameObject.h"
 #include "Scene.h"
 #include "Menu.h"
-#include <iostream>
-#include <windows.h>
 #include "SettingsMenu.h"
 #include "Map.h"
-#include <fstream>
+#include "Pause.h"
+
 
 class Player {
 private:
@@ -75,9 +77,11 @@ private:
     Map map;
     Menu mainMenu;  // Instanciez votre menu ici
     SettingsMenu settingsMenu; // Instanciez votre menu SettingsMenu
+    bool isPaused;
+    Pause pause;  // Instance de la classe PauseMenu
 
 public:
-    Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "J'ai besoin d'un café help") {}
+    Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Pouvoir Du Sucre") {}
 
     void run() {
         int menuChoice = mainMenu.run(window);
@@ -105,7 +109,9 @@ public:
     void gameLoop() {
         while (window.isOpen()) {
             handleEvents();
-            update();
+            if (!isPaused) {
+                update();
+            }
             render();
         }
     }
@@ -115,6 +121,26 @@ public:
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 window.close();
+            }
+            else if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::P) {
+                    isPaused = !isPaused;  // Activer/désactiver la pause avec la touche "P"
+                    std::cout << "Touche P appuyée. Pause = " << isPaused << std::endl;
+
+                    if (isPaused) {
+                        int pauseChoice = pause.run(window);
+                        if (pauseChoice == 0) {
+                            isPaused = false;  // Reprendre le jeu
+                        }
+                        else if (pauseChoice == 1) {
+                            // Recommencer le jeu
+                            // Réinitialisez les éléments du jeu, par exemple le joueur et la carte
+                        }
+                        else if (pauseChoice == 2) {
+                            window.close();  // Quitter le jeu
+                        }
+                    }
+                }
             }
         }
 
