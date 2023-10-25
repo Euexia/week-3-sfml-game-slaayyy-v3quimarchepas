@@ -2,17 +2,18 @@
 #include <iostream>
 #include <windows.h>
 #include <fstream>
-#include "Menu.h"
+#include"Menu.h"
 
 class Pause {
 private:
     sf::Font font;
-    sf::Text title;  // Titre "Pause"
+    sf::Text title;
     std::vector<sf::Text> options;
     int selectedIndex = 0;
 
 public:
     Pause() {}
+
     Pause(sf::Font& menuFont) {
         font = menuFont;
         std::string fontPath = "assets/fonts/monogram.ttf";
@@ -49,13 +50,21 @@ public:
                 if (event.type == sf::Event::Closed) {
                     window.close();
                 }
+                else if (event.type == sf::Event::KeyPressed) {
+                    if (event.key.code == sf::Keyboard::P) {
+                        // Appuyez sur "P" pour reprendre le jeu
+                        return 0;
+                    }
+                    else if (event.key.code == sf::Keyboard::Q) {
+                        // Appuyez sur "Q" pour quitter
+                        return 2;
+                    }
+                }
             }
 
             window.clear();
 
-            // Dessinez le titre "Pause"
             window.draw(title);
-
             for (size_t i = 0; i < options.size(); i++) {
                 if (i == selectedIndex) {
                     options[i].setFillColor(sf::Color::Red);
@@ -63,22 +72,23 @@ public:
                 else {
                     options[i].setFillColor(sf::Color::White);
                 }
-                window.draw(options[i]); // Dessinez les options dans la fenêtre
+                window.draw(options[i]);
             }
-
             window.display();
-
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-                selectedIndex = (selectedIndex - 1 + options.size()) % options.size();
-            }
-            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-                selectedIndex = (selectedIndex + 1) % options.size();
-            }
-            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) {
-                return selectedIndex;
-            }
         }
 
-        return -1;
+        return selectedIndex;
+    }
+    void handleInput(sf::Keyboard::Key key) {
+        if (key == sf::Keyboard::Up) {
+            if (selectedIndex > 0) {
+                selectedIndex--;
+            }
+        }
+        else if (key == sf::Keyboard::Down) {
+            if (selectedIndex < options.size() - 1) {
+                selectedIndex++;
+            }
+        }
     }
 };

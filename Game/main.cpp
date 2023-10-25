@@ -107,12 +107,35 @@ public:
     }
 
     void gameLoop() {
+        isPaused = false; // Assurez-vous que isPaused est initialisé à false
+
         while (window.isOpen()) {
-            handleEvents();
-            if (!isPaused) {
-                update();
+            if (isPaused) {
+                int pauseChoice = pause.run(window);
+                if (pauseChoice == 0) {
+                    isPaused = false;
+                }
+                else if (pauseChoice == 2) {
+                    window.close();
+                    return; // Quitter la boucle de jeu
+                }
             }
-            render();
+            else {
+                handleEvents();
+                update();
+                render();
+            }
+
+            // La gestion de la touche "P" pour mettre le jeu en pause
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::P)) {
+                isPaused = true;
+            }
+
+            // La gestion de la touche "Q" pour quitter le jeu
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
+                window.close();
+                return; // Quitter la boucle de jeu
+            }
         }
     }
 
@@ -124,22 +147,7 @@ public:
             }
             else if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::P) {
-                    isPaused = !isPaused;  // Activer/désactiver la pause avec la touche "P"
-                    std::cout << "Touche P appuyée. Pause = " << isPaused << std::endl;
-
-                    if (isPaused) {
-                        int pauseChoice = pause.run(window);
-                        if (pauseChoice == 0) {
-                            isPaused = false;  // Reprendre le jeu
-                        }
-                        else if (pauseChoice == 1) {
-                            // Recommencer le jeu
-                            // Réinitialisez les éléments du jeu, par exemple le joueur et la carte
-                        }
-                        else if (pauseChoice == 2) {
-                            window.close();  // Quitter le jeu
-                        }
-                    }
+                    isPaused = !isPaused;
                 }
             }
         }
@@ -159,12 +167,8 @@ public:
     }
 };
 
-
 int main() {
     Game game;
     game.run();
-
-
-    
     return 0;
 }
