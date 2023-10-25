@@ -2,34 +2,143 @@
 
 #include "GameObject.h"
 #include "Scene.h"
+#include "Menu.h"
+#include <iostream>
+#include <windows.h>
+#include "SettingsMenu.h"
+#include "Map.h"
+#include <fstream>
 
-int main()
-{
-	Scene scene;
+class Player {
+private:
+    sf::Texture playerTexture;
+    sf::Sprite playerSprite;
+    sf::Vector2f velocity;
+    const float speed = 0.2f; // Vitesse de déplacement
 
-	GameObject* player = scene.CreateDummyGameObject("Player", 200.f, sf::Color::Red);
+public:
+    Player() {
+        if (!playerTexture.loadFromFile("assets/player/img-player.png")) {
+            std::cerr << "Erreur lors du chargement de l'image du joueur!" << std::endl;
+        }
+        playerSprite.setTexture(playerTexture);
+        playerSprite.setPosition(sf::Vector2f(100, 100)); // position de départ
+    }
 
-	GameObject* enemy = scene.CreateDummyGameObject("Enemy", 400.f, sf::Color::Blue);
+    void handleInput() {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+            playerSprite.move(-speed, 0);
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+            playerSprite.move(speed, 0);
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
+            playerSprite.move(0, -speed);
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
+            playerSprite.move(0, speed);
+        }
+    }
 
-	auto window = new sf::RenderWindow(sf::VideoMode(600, 600), "SFML Engine");
+    void update() {
 
-	while (window->isOpen())
-	{
-		sf::Event event;
-		while (window->pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				window->close();
-			if (event.type == sf::Event::KeyPressed)
-				if (event.key.code == sf::Keyboard::Space)
-					player->SetPosition(player->GetPosition() + Maths::Vector2f::Right);
-		}
+        // Gestion des collisions avec les bords de la fenêtre
+        // Haut
+        if (playerSprite.getPosition().y < 0) {
+            playerSprite.setPosition(playerSprite.getPosition().x, 0);
+        }
+        // Bas
+        if (playerSprite.getPosition().y + playerSprite.getGlobalBounds().height > WINDOW_HEIGHT) {
+            playerSprite.setPosition(playerSprite.getPosition().x, WINDOW_HEIGHT - playerSprite.getGlobalBounds().height);
+        }
+        // Gauche
+        if (playerSprite.getPosition().x < 0) {
+            playerSprite.setPosition(0, playerSprite.getPosition().y);
+        }
+        // Droite
+        if (playerSprite.getPosition().x + playerSprite.getGlobalBounds().width > WINDOW_WIDTH) {
+            playerSprite.setPosition(WINDOW_WIDTH - playerSprite.getGlobalBounds().width, playerSprite.getPosition().y);
+        }
+    }
 
-		scene.Update();
-		window->clear(sf::Color::Black);
-		scene.Render(window);
-		window->display();
-	}
+    void draw(sf::RenderWindow& window) {
+        window.draw(playerSprite);
+    }
+};
 
-	return 0;
+
+
+class Game {
+private:
+    sf::RenderWindow window;
+    Player player;
+    Map map;
+    Menu mainMenu;  // Instanciez votre menu ici
+    SettingsMenu settingsMenu; // Instanciez votre menu SettingsMenu
+
+public:
+    Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "J'ai besoin d'un café help") {}
+
+    void run() {
+        int menuChoice = mainMenu.run(window);
+
+        switch (menuChoice) {
+        case 0:  // Play
+            gameLoop();
+            break;
+
+        case 1:  // Settings
+            settingsMenu.run(window); // Affichez le menu Settings
+            run(); // Revenez au menu principal après avoir quitté le menu Settings
+            break;
+
+        case 2:  // Quit
+            window.close();
+            return;
+
+        default:
+            // Gérer les erreurs inattendues
+            break;
+        }
+    }
+
+    void gameLoop() {
+        while (window.isOpen()) {
+            handleEvents();
+            update();
+            render();
+        }
+    }
+
+    void handleEvents() {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+        }
+
+        player.handleInput();
+    }
+
+    void update() {
+        player.update();
+    }
+
+    void render() {
+        window.clear();
+        map.draw(window);
+        player.draw(window);
+        window.display();
+    }
+};
+
+
+int main() {
+    Game game;
+    game.run();
+
+
+    
+    return 0;
 }
